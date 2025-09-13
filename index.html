@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeCraft Academy - Interactive Programming Education</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .platform-container {
+            display: flex;
+            height: 100vh;
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 0 50px rgba(0,0,0,0.1);
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 280px;
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            text-align: center;
+            color: #3498db;
+        }
+
+        .progress-overview {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3498db, #2ecc71);
+            transition: width 0.3s ease;
+        }
+
+        .nav-section {
+            margin-bottom: 25px;
+        }
+
+        .nav-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-item {
+            padding: 12px 15px;
+            margin: 5px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-item:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .nav-item.active {
+            background: #3498db;
+            box-shadow: 0 2px 10px rgba(52,152,219,0.3);
+        }
+
+        .nav-item .icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            background: white;
+            padding: 20px 30px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .lesson-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .difficulty-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .beginner { background: #e8f5e8; color: #27ae60; }
+        .intermediate { background: #fff3cd; color: #f39c12; }
+        .advanced { background: #f8d7da; color: #e74c3c; }
+
+        .content-area {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* Tutorial Panel */
+        .tutorial-panel {
+            width: 400px;
+            background: #f8f9fa;
+            padding: 25px;
+            overflow-y: auto;
+            border-right: 1px solid #eee;
+        }
+
+        .tutorial-step {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-left: 4px solid #3498db;
+        }
+
+        .step-number {
+            background: #3498db;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .step-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .step-content {
+            line-height: 1.6;
+            color: #666;
+        }
+
+        .code-hint {
+            background: #f1f3f4;
+            padding: 12px;
+            border-radius: 6px;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 13px;
+            margin: 10px 0;
+            border-left: 3px solid #3498db;
+        }
+
+        /* Code Editor Area */
+        .editor-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .editor-tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 1px solid #eee;
+        }
+
+        .editor-tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .editor-tab.active {
+            background: white;
+            border-bottom-color: #3498db;
+            color: #3498db;
+        }
+
+        .editor-container {
+            flex: 1;
+            position: relative;
+        }
+
+        #code-editor {
+            height: 100%;
+            width: 100%;
+        }
+
+        .editor-controls {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #229954;
+        }
+
+        /* Analysis Panel */
+        .analysis-panel {
+            width: 350px;
+            background: white;
+            border-left: 1px solid #eee;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .analysis-header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            background: #f8f9fa;
+        }
+
+        .analysis-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .analysis-subtitle {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .analysis-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .analysis-section {
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .issue-item {
+            background: #fff5f5;
+            border: 1px solid #fed7d7;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+
+        .issue-item.warning {
+            background: #fffbf0;
+            border-color: #fbd38d;
+        }
+
+        .issue-item.success {
+            background: #f0fff4;
+            border-color: #9ae6b4;
+        }
+
+        .issue-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .issue-type {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .error { background: #fed7d7; color: #c53030; }
+        .warning { background: #fbd38d; color: #d69e2e; }
+        .success { background: #9ae6b4; color: #38a169; }
+
+        .issue-message {
+            font-size: 13px;
+            line-height: 1.4;
+            margin-bottom: 8px;
+        }
+
+        .issue-suggestion {
+            font-size: 12px;
+            color: #666;
+            background: rgba(255,255,255,0.7);
+            padding: 8px;
+            border-radius: 4px;
+            border-left: 3px solid #3498db;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .metric-card {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #3498db;
+        }
+
+        .metric-label {
+            font-size: 11px;
+            color: #666;
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+
+        /* Output Console */
+        .console-output {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 13px;
+            padding: 15px;
+            height: 120px;
+            overflow-y: auto;
+            border-top: 1px solid #eee;
+        }
+
+        .console-line {
+            margin-bottom: 4px;
+            padding: 2px 0;
+        }
+
+        .console-error {
+            color: #f48771;
+        }
+
+        .console-success {
+            color: #7cc7a8;
+        }
+
+        .console-info {
+            color: #569cd6;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .tutorial-panel {
+                width: 300px;
+            }
+            .analysis-panel {
+                width: 280px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .platform-container {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                height: auto;
+            }
+            .content-area {
+                flex-direction: column;
+            }
+            .tutorial-panel, .analysis-panel {
+                width: 100%;
+                height: 200px;
+            }
+        }
+
+        /* Loading States */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Accessibility Enhancements */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        .focus-visible {
+            outline: 2px solid #3498db;
+            outline-offset: 2px;
+        }
+
+        /* Animations */
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="platform-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar" role="navigation" aria-label="Main navigation">
+            <div class="logo">🚀 CodeCraft Academy</div>
+            
+            <div class="progress-overview">
+                <h3>Your Progress</h3>
+                <p>Beginner → Intermediate</p>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 65%"></div>
+                </div>
+                <small>65% Complete</small>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-title">Learning Path</div>
+                <div class="nav-item active" data-section="variables">
+                    <span class="icon">📝</span>
+                    Variables & Data Types
+                </div>
+                <div class="nav-item" data-section="functions">
+                    <span class="icon">⚡</span>
+                    Functions & Scope
+                </div>
+                <div class="nav-item" data-section="loops">
+                    <span class="icon">🔄</span>
+                    Loops & Iteration
+                </div>
+                <div class="nav-item" data-section="arrays">
+                    <span class="icon">📊</span>
+                    Arrays & Objects
+                </div>
+                <div class="nav-item" data-section="debugging">
+                    <span class="icon">🐛</span>
+                    Debugging Techniques
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-title">Practice</div>
+                <div class="nav-item" data-section="exercises">
+                    <span class="icon">💪</span>
+                    Auto-Generated Exercises
+                </div>
+                <div class="nav-item" data-section="challenges">
+                    <span class="icon">🏆</span>
+                    Coding Challenges
+                </div>
+                <div class="nav-item" data-section="projects">
+                    <span class="icon">🎯</span>
+                    Mini Projects
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-title">Analytics</div>
+                <div class="nav-item" data-section="progress">
+                    <span class="icon">📈</span>
+                    Learning Analytics
+                </div>
+                <div class="nav-item" data-section="achievements">
+                    <span class="icon">🏅</span>
+                    Achievements
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <header class="header">
+                <div>
+                    <h1 class="lesson-title">Variables & Data Types</h1>
+                    <span class="difficulty-badge beginner">Beginner</span>
+                </div>
+                <div>
+                    <button class="btn btn-secondary" id="reset-lesson">
+                        🔄 Reset Lesson
+                    </button>
+                </div>
+            </header>
+
+            <div class="content-area">
+                <!-- Interactive Tutorial Panel -->
+                <aside class="tutorial-panel" role="complementary" aria-label="Tutorial steps">
+                    <div class="tutorial-step fade-in">
+                        <div class="step-number">1</div>
+                        <h3 class="step-title">Understanding Variables</h3>
+                        <div class="step-content">
+                            <p>Variables are containers that store data values. In JavaScript, you can create variables using <code>let</code>, <code>const</code>, or <code>var</code>.</p>
+                            <div class="code-hint">let message = "Hello, World!";</div>
+                            <p><strong>Try it:</strong> Create a variable called <code>name</code> and assign it your name as a string.</p>
+                        </div>
+                    </div>
+
+                    <div class="tutorial-step">
+                        <div class="step-number">2</div>
+                        <h3 class="step-title">Data Types</h3>
+                        <div class="step-content">
+                            <p>JavaScript has several data types:</p>
+                            <ul style="margin: 10px 0; padding-left: 20px;">
+                                <li><strong>String:</strong> Text data</li>
+                                <li><strong>Number:</strong> Numeric values</li>
+                                <li><strong>Boolean:</strong> true/false</li>
+                                <li><strong>Array:</strong> Lists of values</li>
+                            </ul>
+                            <div class="code-hint">let age = 25;  // Number<br>let isStudent = true;  // Boolean</div>
+                        </div>
+                    </div>
+
+                    <div class="tutorial-step">
+                        <div class="step-number">3</div>
+                        <h3 class="step-title">Practice Exercise</h3>
+                        <div class="step-content">
+                            <p>Create variables for:</p>
+                            <ul style="margin: 10px 0; padding-left: 20px;">
+                                <li>Your favorite color (string)</li>
+                                <li>Your age (number)</li>
+                                <li>Whether you like coding (boolean)</li>
+                            </ul>
+                            <p>Then use <code>console.log()</code> to display each variable.</p>
+                        </div>
+                    </div>
+                </aside>
+
+                <!-- Code Editor Area -->
+                <section class="editor-area" role="main" aria-label="Code editor">
+                    <div class="editor-tabs">
+                        <div class="editor-tab active" data-tab="javascript">JavaScript</div>
+                        <div class="editor-tab" data-tab="output">Output</div>
+                        <div class="editor-tab" data-tab="tests">Tests</div>
+                    </div>
+
+                    <div class="editor-container">
+                        <div id="code-editor"></div>
+                    </div>
+
+                    <div class="editor-controls">
+                        <button class="btn btn-primary" id="run-code" aria-label="Run code">
+                            ▶️ Run Code
+                        </button>
+                        <button class="btn btn-secondary" id="check-syntax" aria-label="Check syntax">
+                            🔍 Check Syntax
+                        </button>
+                        <button class="btn btn-success" id="submit-exercise" aria-label="Submit exercise">
+                            ✅ Submit Exercise
+                        </button>
+                        <span id="auto-save-status" style="margin-left: auto; font-size: 12px; color: #666;">
+                            Auto-saved 2 minutes ago
+                        </span>
+                    </div>
+
+                    <div class="console-output" id="console-output" role="log" aria-label="Code output">
+                        <div class="console-line console-info">// Welcome to CodeCraft Academy! 🚀</div>
+                        <div class="console-line console-info">// Write your code above and click "Run Code" to see the output</div>
+                        <div class="console-line console-info">// The AI will analyze your code and provide helpful feedback</div>
+                    </div>
+                </section>
+
+                <!-- AI Analysis Panel -->
+                <aside class="analysis-panel" role="complementary" aria-label="Code analysis">
+                    <div class="analysis-header">
+                        <h2 class="analysis-title">🤖 AI Code Analysis</h2>
+                        <p class="analysis-subtitle">Real-time feedback & suggestions</p>
+                    </div>
+
+                    <div class="analysis-content">
+                        <div class="metrics-grid">
+                            <div class="metric-card">
+                                <div class="metric-value">0</div>
+                                <div class="metric-label">Errors</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value">0</div>
+                                <div class="metric-label">Warnings</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value">85%</div>
+                                <div class="metric-label">Code Quality</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value">3/5</div>
+                                <div class="metric-label">Progress</div>
+                            </div>
+                        </div>
+
+                        <div class="analysis-section">
+                            <h3 class="section-title">
+                                🎯 Current Issues
+                            </h3>
+                            <div class="issue-item success">
+                                <div class="issue-header">
+                                    <span class="issue-type success">Ready</span>
+                                </div>
+                                <div class="issue-message">
+                                    Ready to start coding! The editor is waiting for your first variable declaration.
+                                </div>
+                                <div class="issue-suggestion">
+                                    💡 <strong>Tip:</strong> Start with <code>let name = "Your Name";</code>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="analysis-section">
+                            <h3 class="section-title">
+                                📚 Learning Insights
+                            </h3>
+                            <div style="font-size: 13px; line-height: 1.5; color: #666;">
+                                <p><strong>Concept Mastery:</strong></p>
+                                <ul style="margin: 8px 0; padding-left: 20px;">
+                                    <li>✅ Variable declaration syntax</li>
+                                    <li>⏳ Data type identification</li>
+                                    <li>⏳ Console output methods</li>
+                                </ul>
+                                
+                                <p style="margin-top: 15px;"><strong>Next Steps:</strong></p>
+                                <p>Once you complete this exercise, you'll unlock functions and learn how to create reusable code blocks!</p>
+                            </div>
+                        </div>
+
+                        <div class="analysis-section">
+                            <h3 class="section-title">
+                                🏆 Achievements
+                            </h3>
+                            <div style="font-size: 12px; color: #666;">
+                                <p>🥉 <strong>First Steps:</strong> Write your first variable</p>
+                                <p style="opacity: 0.5;">🥈 <strong>Data Master:</strong> Use all basic data types</p>
+                                <p style="opacity: 0.5;">🥇 <strong>Console Pro:</strong> Master console output</p>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Monaco Editor Setup
+        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' }});
+        
+        let editor;
+        let currentLesson = 'variables';
+        let userProgress = {
+            variables: { completed: false, score: 0, attempts: 0 },
+            functions: { completed: false, score: 0, attempts: 0 },
+            loops: { completed: false, score: 0, attempts: 0 },
+            arrays: { completed: false, score: 0, attempts: 0 },
+            debugging: { completed: false, score: 0, attempts: 0 }
+        };
+
+        // Initialize Monaco Editor
+        require(['vs/editor/editor.main'], function () {
+            editor = monaco.editor.create(document.getElementById('code-editor'), {
+                value: '// Welcome to CodeCraft Academy!\n// Let\'s start by creating your first variable\n\n// Step 1: Create a variable called "name" with your name\n\n\n// Step 2: Create a variable called "age" with your age\n\n\n// Step 3: Create a variable called "likeCoding" (true/false)\n\n\n// Step 4: Display all variables using console.log()\n\n',
+                language: 'javascript',
+                theme: 'vs-light',
+                fontSize: 14,
+                lineNumbers: 'on',
+                roundedSelection: false,
+                scrollBeyondLastLine: false,
+                automaticLayout: true,
+                minimap: { enabled: false },
+                wordWrap: 'on'
+            });
+
+            // Auto-save functionality
+            let saveTimeout;
+            editor.onDidChangeModelContent(() => {
+                clearTimeout(saveTimeout);
+                saveTimeout = setTimeout(() => {
+                    autoSave();
+                    analyzeCode();
+                }, 1000);
+            });
+        });
+
+        // Code Analysis Engine
+        function analyzeCode() {
+            const code = editor.getValue();
+            const issues = [];
+            const metrics = { errors: 0, warnings: 0, quality: 100 };
+
+            // Syntax Analysis
+            try {
+                new Function(code);
+            } catch (error) {
+                issues.push({
+                    type: 'error',
+                    message: `Syntax Error: ${error.message}`,
+                    suggestion: 'Check for missing semicolons, brackets, or quotes. Make sure all parentheses and brackets are properly closed.',
+                    line: extractLineNumber(error.message)
+                });
+                metrics.errors++;
+                metrics.quality -= 20;
+            }
+
+            // Semantic Analysis for Variables Lesson
+            if (currentLesson === 'variables') {
+                const hasNameVariable = /let\s+name\s*=|const\s+name\s*=|var\s+name\s*=/.test(code);
+                const hasAgeVariable = /let\s+age\s*=|const\s+age\s*=|var\s+age\s*=/.test(code);
+                const hasLikeCodingVariable = /let\s+likeCoding\s*=|const\s+likeCoding\s*=|var\s+likeCoding\s*=/.test(code);
+                const hasConsoleLog = /console\.log/.test(code);
+
+                if (!hasNameVariable) {
+                    issues.push({
+                        type: 'warning',
+                        message: 'Missing name variable',
+                        suggestion: 'Create a variable called "name" and assign it a string value with your name.',
+                        example: 'let name = "Your Name";'
+                    });
+                    metrics.warnings++;
+                }
+
+                if (!hasAgeVariable) {
+                    issues.push({
+                        type: 'warning',
+                        message: 'Missing age variable',
+                        suggestion: 'Create a variable called "age" and assign it a number value.',
+                        example: 'let age = 25;'
+                    });
+                    metrics.warnings++;
+                }
+
+                if (!hasLikeCodingVariable) {
+                    issues.push({
+                        type: 'warning',
+                        message: 'Missing likeCoding variable',
+                        suggestion: 'Create a boolean variable called "likeCoding" with true or false.',
+                        example: 'let likeCoding = true;'
+                    });
+                    metrics.warnings++;
+                }
+
+                if (!hasConsoleLog) {
+                    issues.push({
+                        type: 'warning',
+                        message: 'No console output found',
+                        suggestion: 'Use console.log() to display your variables and see the output.',
+                        example: 'console.log(name);'
+                    });
+                    metrics.warnings++;
+                }
+
+                // Check for best practices
+                if (/var\s+/.test(code)) {
+                    issues.push({
+                        type: 'warning',
+                        message: 'Consider using "let" or "const" instead of "var"',
+                        suggestion: 'Modern JavaScript prefers "let" for variables that change and "const" for constants.',
+                        example: 'let name = "John"; // instead of var name = "John";'
+                    });
+                    metrics.quality -= 5;
+                }
+            }
+
+            // Update UI with analysis results
+            updateAnalysisPanel(issues, metrics);
+        }
+
+        function updateAnalysisPanel(issues, metrics) {
+            // Update metrics
+            document.querySelector('.metric-card:nth-child(1) .metric-value').textContent = metrics.errors;
+            document.querySelector('.metric-card:nth-child(2) .metric-value').textContent = metrics.warnings;
+            document.querySelector('.metric-card:nth-child(3) .metric-value').textContent = Math.max(0, metrics.quality) + '%';
+
+            // Update issues section
+            const issuesContainer = document.querySelector('.analysis-section:first-child');
+            const issuesContent = issuesContainer.querySelector('.issue-item').parentElement;
+            
+            // Clear existing issues
+            issuesContent.innerHTML = '';
+
+            if (issues.length === 0) {
+                issuesContent.innerHTML = `
+                    <div class="issue-item success">
+                        <div class="issue-header">
+                            <span class="issue-type success">Great!</span>
+                        </div>
+                        <div class="issue-message">
+                            No issues found! Your code looks good.
+                        </div>
+                        <div class="issue-suggestion">
+                            💡 <strong>Next:</strong> Try running your code to see the output!
+                        </div>
+                    </div>
+                `;
+            } else {
+                issues.forEach(issue => {
+                    const issueElement = document.createElement('div');
+                    issueElement.className = `issue-item ${issue.type}`;
+                    issueElement.innerHTML = `
+                        <div class="issue-header">
+                            <span class="issue-type ${issue.type}">${issue.type}</span>
+                            ${issue.line ? `<span style="font-size: 11px; color: #666;">Line ${issue.line}</span>` : ''}
+                        </div>
+                        <div class="issue-message">${issue.message}</div>
+                        <div class="issue-suggestion">
+                            💡 <strong>Fix:</strong> ${issue.suggestion}
+                            ${issue.example ? `<br><code>${issue.example}</code>` : ''}
+                        </div>
+                    `;
+                    issuesContent.appendChild(issueElement);
+                });
+            }
+        }
+
+        // Code Execution in Safe Sandbox
+        function runCode() {
+            const code = editor.getValue();
+            const consoleOutput = document.getElementById('console-output');
+            
+            // Clear previous output
+            consoleOutput.innerHTML = '';
+            
+            // Create safe execution environment
+            const originalConsole = console;
+            const logs = [];
+            
+            // Override console methods
+            const safeConsole = {
+                log: (...args) => logs.push({ type: 'info', content: args.join(' ') }),
+                error: (...args) => logs.push({ type: 'error', content: args.join(' ') }),
+                warn: (...args) => logs.push({ type: 'warning', content: args.join(' ') })
+            };
+
+            try {
+                // Execute code in controlled environment
+                const func = new Function('console', code);
+                func(safeConsole);
+                
+                // Display output
+                if (logs.length === 0) {
+                    addConsoleMessage('info', 'Code executed successfully (no output)');
+                } else {
+                    logs.forEach(log => {
+                        addConsoleMessage(log.type, log.content);
+                    });
+                }
+                
+                // Update progress
+                updateProgress();
+                
+            } catch (error) {
+                addConsoleMessage('error', `Runtime Error: ${error.message}`);
+                addConsoleMessage('info', 'Check your code for syntax errors and try again.');
+            }
+        }
+
+        function addConsoleMessage(type, content) {
+            const consoleOutput = document.getElementById('console-output');
+            const line = document.createElement('div');
+            line.className = `console-line console-${type}`;
+            line.textContent = content;
+            consoleOutput.appendChild(line);
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        }
+
+        // Exercise Submission and Auto-Grading
+        function submitExercise() {
+            const code = editor.getValue();
+            const results = gradeExercise(code);
+            
+            // Update progress
+            userProgress[currentLesson].attempts++;
+            userProgress[currentLesson].score = results.score;
+            userProgress[currentLesson].completed = results.score >= 80;
+            
+            // Show results
+            showGradingResults(results);
+            
+            // Update progress display
+            updateProgressDisplay();
+        }
+
+        function gradeExercise(code) {
+            const tests = [];
+            let score = 0;
+            const maxScore = 100;
+
+            if (currentLesson === 'variables') {
+                // Test 1: Variable declarations
+                const hasNameVariable = /let\s+name\s*=\s*["'][^"']+["']|const\s+name\s*=\s*["'][^"']+["']/.test(code);
+                const hasAgeVariable = /let\s+age\s*=\s*\d+|const\s+age\s*=\s*\d+/.test(code);
+                const hasLikeCodingVariable = /let\s+likeCoding\s*=\s*(true|false)|const\s+likeCoding\s*=\s*(true|false)/.test(code);
+                const hasConsoleLog = /console\.log\s*\([^)]*\)/.test(code);
+
+                tests.push({
+                    name: 'Name variable (string)',
+                    passed: hasNameVariable,
+                    points: 25,
+                    feedback: hasNameVariable ? 'Great! You created a name variable with a string value.' : 'Create a variable called "name" with a string value.'
+                });
+
+                tests.push({
+                    name: 'Age variable (number)',
+                    passed: hasAgeVariable,
+                    points: 25,
+                    feedback: hasAgeVariable ? 'Perfect! You created an age variable with a number.' : 'Create a variable called "age" with a number value.'
+                });
+
+                tests.push({
+                    name: 'Boolean variable',
+                    passed: hasLikeCodingVariable,
+                    points: 25,
+                    feedback: hasLikeCodingVariable ? 'Excellent! You used a boolean value correctly.' : 'Create a variable called "likeCoding" with true or false.'
+                });
+
+                tests.push({
+                    name: 'Console output',
+                    passed: hasConsoleLog,
+                    points: 25,
+                    feedback: hasConsoleLog ? 'Nice work! You used console.log to display output.' : 'Use console.log() to display your variables.'
+                });
+
+                score = tests.reduce((total, test) => total + (test.passed ? test.points : 0), 0);
+            }
+
+            return { score, tests, maxScore };
+        }
+
+        function showGradingResults(results) {
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0,0,0,0.5); display: flex; align-items: center;
+                justify-content: center; z-index: 1000;
+            `;
+
+            const content = document.createElement('div');
+            content.style.cssText = `
+                background: white; padding: 30px; border-radius: 12px;
+                max-width: 500px; width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            `;
+
+            const scoreColor = results.score >= 80 ? '#27ae60' : results.score >= 60 ? '#f39c12' : '#e74c3c';
+            
+            content.innerHTML = `
+                <h2 style="margin-bottom: 20px; color: #2c3e50;">Exercise Results</h2>
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="font-size: 48px; font-weight: bold; color: ${scoreColor};">
+                        ${results.score}%
+                    </div>
+                    <div style="color: #666; margin-top: 5px;">
+                        ${results.score >= 80 ? '🎉 Excellent!' : results.score >= 60 ? '👍 Good job!' : '💪 Keep trying!'}
+                    </div>
+                </div>
+                <div style="margin-bottom: 20px;">
+                    ${results.tests.map(test => `
+                        <div style="display: flex; align-items: center; margin-bottom: 10px; padding: 10px; background: ${test.passed ? '#f0fff4' : '#fff5f5'}; border-radius: 6px;">
+                            <span style="margin-right: 10px; font-size: 18px;">
+                                ${test.passed ? '✅' : '❌'}
+                            </span>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 500;">${test.name}</div>
+                                <div style="font-size: 12px; color: #666; margin-top: 2px;">
+                                    ${test.feedback}
+                                </div>
+                            </div>
+                            <div style="font-weight: bold; color: ${test.passed ? '#27ae60' : '#e74c3c'};">
+                                ${test.passed ? test.points : 0}/${test.points}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div style="text-align: center;">
+                    <button onclick="this.parentElement.parentElement.parentElement.remove()" 
+                            style="background: #3498db; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-weight: 500;">
+                        Continue Learning
+                    </button>
+                </div>
+            `;
+
+            modal.appendChild(content);
+            document.body.appendChild(modal);
+
+            // Auto-remove after 10 seconds
+            setTimeout(() => {
+                if (modal.parentElement) {
+                    modal.remove();
+                }
+            }, 10000);
+        }
+
+        // Progress Tracking and Analytics
+        function updateProgress() {
+            const code = editor.getValue();
+            
+            // Simple progress calculation based on code completion
+            if (currentLesson === 'variables') {
+                let progress = 0;
+                if (/let\s+name|const\s+name/.test(code)) progress += 20;
+                if (/let\s+age|const\s+age/.test(code)) progress += 20;
+                if (/let\s+likeCoding|const\s+likeCoding/.test(code)) progress += 20;
+                if (/console\.log/.test(code)) progress += 40;
+                
+                document.querySelector('.metric-card:nth-child(4) .metric-value').textContent = `${Math.min(progress, 100)}%`;
+            }
+        }
+
+        function updateProgressDisplay() {
+            const totalLessons = Object.keys(userProgress).length;
+            const completedLessons = Object.values(userProgress).filter(lesson => lesson.completed).length;
+            const overallProgress = Math.round((completedLessons / totalLessons) * 100);
+            
+            document.querySelector('.progress-fill').style.width = `${overallProgress}%`;
+            document.querySelector('.progress-overview small').textContent = `${overallProgress}% Complete`;
+        }
+
+        // Auto-save functionality
+        function autoSave() {
+            const code = editor.getValue();
+            localStorage.setItem(`codecraft_${currentLesson}`, code);
+            document.getElementById('auto-save-status').textContent = 'Auto-saved just now';
+            
+            setTimeout(() => {
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                document.getElementById('auto-save-status').textContent = `Auto-saved at ${timeStr}`;
+            }, 2000);
+        }
+
+        // Load saved code
+        function loadSavedCode() {
+            const savedCode = localStorage.getItem(`codecraft_${currentLesson}`);
+            if (savedCode && editor) {
+                editor.setValue(savedCode);
+            }
+        }
+
+        // Utility functions
+        function extractLineNumber(errorMessage) {
+            const match = errorMessage.match(/line (\d+)/i);
+            return match ? parseInt(match[1]) : null;
+        }
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Navigation
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    if (this.dataset.section) {
+                        // Update active state
+                        document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+                        this.classList.add('active');
+                        
+                        // Switch lesson content
+                        currentLesson = this.dataset.section;
+                        switchLesson(currentLesson);
+                    }
+                });
+            });
+
+            // Control buttons
+            document.getElementById('run-code').addEventListener('click', runCode);
+            document.getElementById('check-syntax').addEventListener('click', analyzeCode);
+            document.getElementById('submit-exercise').addEventListener('click', submitExercise);
+            
+            document.getElementById('reset-lesson').addEventListener('click', function() {
+                if (confirm('Are you sure you want to reset this lesson? All progress will be lost.')) {
+                    resetLesson();
+                }
+            });
+
+            // Tab switching
+            document.querySelectorAll('.editor-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('.editor-tab').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    // Tab switching logic would go here
+                });
+            });
+
+            // Load saved progress
+            const savedProgress = localStorage.getItem('codecraft_progress');
+            if (savedProgress) {
+                userProgress = { ...userProgress, ...JSON.parse(savedProgress) };
+                updateProgressDisplay();
+            }
+
+            // Initial analysis
+            setTimeout(() => {
+                if (editor) {
+                    loadSavedCode();
+                    analyzeCode();
+                }
+            }, 1000);
+        });
+
+        function switchLesson(lessonId) {
+            // This would switch the tutorial content, code template, and analysis
+            // For demo purposes, we'll just show a simple implementation
+            const lessonData = {
+                variables: {
+                    title: 'Variables & Data Types',
+                    difficulty: 'beginner',
+                    template: '// Welcome to CodeCraft Academy!\n// Let\'s start by creating your first variable\n\n// Step 1: Create a variable called "name" with your name\n\n\n// Step 2: Create a variable called "age" with your age\n\n\n// Step 3: Create a variable called "likeCoding" (true/false)\n\n\n// Step 4: Display all variables using console.log()\n\n'
+                },
+                functions: {
+                    title: 'Functions & Scope',
+                    difficulty: 'beginner',
+                    template: '// Functions are reusable blocks of code\n// Let\'s create your first function!\n\n// Step 1: Create a function called "greet" that takes a name parameter\n\n\n// Step 2: Make the function return a greeting message\n\n\n// Step 3: Call the function with your name\n\n'
+                }
+            };
+
+            const lesson = lessonData[lessonId];
+            if (lesson && editor) {
+                document.querySelector('.lesson-title').textContent = lesson.title;
+                document.querySelector('.difficulty-badge').textContent = lesson.difficulty;
+                document.querySelector('.difficulty-badge').className = `difficulty-badge ${lesson.difficulty}`;
+                editor.setValue(lesson.template);
+                analyzeCode();
+            }
+        }
+
+        function resetLesson() {
+            if (editor) {
+                switchLesson(currentLesson);
+                localStorage.removeItem(`codecraft_${currentLesson}`);
+                document.getElementById('console-output').innerHTML = `
+                    <div class="console-line console-info">// Lesson reset! Ready to start fresh 🚀</div>
+                    <div class="console-line console-info">// Write your code above and click "Run Code" to see the output</div>
+                `;
+            }
+        }
+
+        // Save progress periodically
+        setInterval(() => {
+            localStorage.setItem('codecraft_progress', JSON.stringify(userProgress));
+        }, 30000);
+
+        // Accessibility enhancements
+        document.addEventListener('keydown', function(e) {
+            // Keyboard shortcuts
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case 'Enter':
+                        e.preventDefault();
+                        runCode();
+                        break;
+                    case 's':
+                        e.preventDefault();
+                        autoSave();
+                        break;
+                }
+            }
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97e56ea680db9f41',t:'MTc1Nzc0MzMxMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
